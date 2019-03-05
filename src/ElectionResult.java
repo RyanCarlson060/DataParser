@@ -5,6 +5,22 @@ public class ElectionResult {
     private String state_abbr, county_name;
     private int combined_fips;
 
+    @Override
+    public String toString() {
+        return "ElectionResult{" +
+                "votes_dem=" + votes_dem +
+                ", votes_gop=" + votes_gop +
+                ", total_votes=" + total_votes +
+                ", per_dem=" + per_dem +
+                ", per_gop=" + per_gop +
+                ", diff=" + diff +
+                ", per_point_diff=" + per_point_diff +
+                ", state_abbr='" + state_abbr + '\'' +
+                ", county_name='" + county_name + '\'' +
+                ", combined_fips=" + combined_fips +
+                '}';
+    }
+
     public ElectionResult(double votes_dem, double votes_gop, double total_votes, double per_dem, double per_gop, int diff, double per_point_diff, String state_abbr, String county_name, int combined_fips) {
         this.votes_dem = votes_dem;
         this.votes_gop = votes_gop;
