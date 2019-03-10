@@ -21,6 +21,165 @@ public class Utils {
         return output.toString();
     }
 
+    public static DataManager parseFilesIntoDataManager(String electionFile, String educationFile, String employmentFile) {
+
+        ArrayList<State> states = new ArrayList<>();
+        String data = normalizeLineBreaks(electionFile);
+        String data2 = normalizeLineBreaks(educationFile);
+        String data3 = normalizeLineBreaks(employmentFile);
+
+        String[] electionLines = data.split("\n");
+        String[] educationLines = data2.split("\n");
+        String[] employmentLines = data3.split("\n");
+        states = getStates(electionLines);
+        String[] electionLineData;
+        for (int a = 1; a < electionLines.length; a++) {
+            electionLineData = electionLines[a].split(",");
+
+            for (int i = 0; i < states.size(); i++) {
+                if (getState(electionLineData).equals(states.get(i).getName())) {
+
+                    ArrayList<County> counties = states.get(i).getCounties();
+                    String countyName = getCounty(electionLineData);
+                    int fips = getFip(electionLineData);
+                    boolean countyExists = false;
+                    for (County c : counties) {
+                        if (c.getName().equals(countyName) && c.getFips() == fips) {
+                            countyExists = true;
+                        }
+                    }
+                    if (!countyExists) {
+                        Education2016 education = getEducation(educationLines, getState(electionLineData), countyName, fips);
+                        Employment2016 employment = getEmployment(employmentLines, getState(electionLineData), countyName, fips);
+                        counties.add(new County(getCounty(electionLineData), getFip(electionLineData), getElection(electionLineData), education, employment));
+
+                    }
+                }
+
+            }
+        }
+        return new DataManager(states);
+
+    }
+
+    private static Employment2016 getEmployment(String[] employmentLines, String state, String countyName, int fips) {
+        String[] lineData;
+        int countyLine = -1;
+        for (int i = 9; i < 3204; i++) {
+            lineData = employmentLines[i].split(",");
+            if (Integer.parseInt(lineData[0]) == fips && lineData[1].equals(state) && lineData[2].equals(countyName)) {
+                countyLine = i;
+            }
+        }
+        if (countyLine != -1) {
+            String line = employmentLines[countyLine];
+            line = optimizeLine(line);
+            String[] data = line.split(",");
+
+            return new Employment2016(Integer.parseInt(data[42].trim()), Integer.parseInt(data[43].trim()), Integer.parseInt(data[44].trim()), Double.parseDouble(data[45].trim()));
+        }
+        return new Employment2016(-1, -1, -1, -1);
+    }
+
+    private static Education2016 getEducation(String[] educationLines, String state, String countyName, int fips) {
+        String[] lineData;
+
+        int countyLine = -1;
+        for (int i = 6; i < 3209; i++) {
+            lineData = educationLines[i].split(",");
+            if (Integer.parseInt(lineData[0]) == fips && lineData[1].equals(state) && lineData[2].equals(countyName)) {
+                countyLine = i;
+            }
+        }
+        if (countyLine != -1) {
+            String line = educationLines[countyLine];
+            line = optimizeLine(line);
+            String[] data = line.split(",");
+
+            return new Education2016(Double.parseDouble(data[42].trim()), Double.parseDouble(data[39].trim()), Double.parseDouble(data[40].trim()), Double.parseDouble(data[41].trim()));
+        }
+        return new Education2016(-1, -1, -1, -1);
+    }
+
+    private static String optimizeLine(String line) {
+        int index = 0;
+        while (index < line.length() && index >= 0) {
+            line = replaceCommas(line, index);
+            index++;
+
+        }
+        line = line.replace("\"", "");
+        line = line.trim();
+        System.out.println(line);
+        return line;
+    }
+
+    private static String replaceCommas(String s, int index) {
+        int quoteLoc = s.indexOf("\"", index);
+        if (!(s.substring(quoteLoc + 1, quoteLoc + 2).equals(",")) && quoteLoc != -1) {
+            int nextQuoteLoc = s.indexOf("\"", quoteLoc + 1);
+            if (nextQuoteLoc != -1) {
+                String originalString = s.substring(quoteLoc + 1, nextQuoteLoc);
+                String fixedString = originalString.substring(0);
+                fixedString = fixedString.replace(",", "");
+                s = s.replace(originalString, fixedString);
+
+            }
+        }
+        return s;
+    }
+
+
+    private static Election2016 getElection(String[] electionLineData) {
+        double demVotes = Double.parseDouble(electionLineData[0]);
+        double gopVotes = Double.parseDouble(electionLineData[1]);
+        double totalVotes = Double.parseDouble(electionLineData[2]);
+
+        return new Election2016(demVotes, gopVotes, totalVotes);
+
+    }
+
+    private static String getCounty(String[] lineData) {
+        int differenceInCommas = lineData.length - 11;
+        return lineData[9 + differenceInCommas];
+    }
+
+    private static int getFip(String[] lineData) {
+        int differenceInCommas = lineData.length - 11;
+        int combined_fips = Integer.parseInt(lineData[10 + differenceInCommas].trim());
+        return combined_fips;
+
+
+    }
+
+    private static ArrayList<State> getStates(String[] lines) {
+        ArrayList<State> states = new ArrayList<>();
+        String[] lineData;
+        for (int a = 1; a < lines.length; a++) {
+            lineData = lines[a].split(",");
+            String state = getState(lineData);
+            boolean stateExists = false;
+            for (int i = 0; i < states.size(); i++) {
+                if (states.get(i).getName().equals(state)) {
+                    stateExists = true;
+                }
+
+            }
+            if (!stateExists) {
+                State s = new State(state, new ArrayList<County>());
+                states.add(s);
+            }
+        }
+        return states;
+    }
+
+    private static String getState(String[] lineData) {
+        int differenceInCommas = lineData.length - 11;
+        return lineData[8 + differenceInCommas];
+
+    }
+
+
     public static ArrayList<ElectionResult> parse2016PresidentialResults(String filedata) {
         String data = normalizeLineBreaks(filedata);
         String[] lines = data.split("\n");
@@ -30,7 +189,7 @@ public class Utils {
         String[] lineData;
         for (int a = 1; a < lines.length; a++) {
             lineData = lines[a].split(",");
-            ElectionResult result = parseLines(lineData);
+            ElectionResult result = parseElectionLines(lineData);
             dataSet.add(result);
 
         }
@@ -39,7 +198,7 @@ public class Utils {
 
     }
 
-    private static ElectionResult parseLines(String[] lineData) {
+    private static ElectionResult parseElectionLines(String[] lineData) {
         int diff;
         int differenceInCommas = lineData.length - 11;
         double[] dataVals = new double[5];
