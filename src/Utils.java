@@ -49,8 +49,8 @@ public class Utils {
                         }
                     }
                     if (!countyExists) {
-                        Education2016 education = getEducation(educationLines, getState(electionLineData), countyName, fips);
-                        Employment2016 employment = getEmployment(employmentLines, getState(electionLineData), countyName, fips);
+                        Education2016 education = getEducation(educationLines, fips);
+                        Employment2016 employment = getEmployment(employmentLines, fips);
                         counties.add(new County(getCounty(electionLineData), getFip(electionLineData), getElection(electionLineData), education, employment));
 
                     }
@@ -62,12 +62,12 @@ public class Utils {
 
     }
 
-    private static Employment2016 getEmployment(String[] employmentLines, String state, String countyName, int fips) {
+    private static Employment2016 getEmployment(String[] employmentLines, int fips) {
         String[] lineData;
         int countyLine = -1;
         for (int i = 9; i < 3204; i++) {
             lineData = employmentLines[i].split(",");
-            if (Integer.parseInt(lineData[0]) == fips && lineData[1].equals(state) && lineData[2].equals(countyName)) {
+            if (Integer.parseInt(lineData[0]) == fips) {
                 countyLine = i;
             }
         }
@@ -81,13 +81,13 @@ public class Utils {
         return new Employment2016(-1, -1, -1, -1);
     }
 
-    private static Education2016 getEducation(String[] educationLines, String state, String countyName, int fips) {
+    private static Education2016 getEducation(String[] educationLines, int fips) {
         String[] lineData;
 
         int countyLine = -1;
         for (int i = 6; i < 3209; i++) {
             lineData = educationLines[i].split(",");
-            if (Integer.parseInt(lineData[0]) == fips && lineData[1].equals(state) && lineData[2].equals(countyName)) {
+            if (Integer.parseInt(lineData[0]) == fips) {
                 countyLine = i;
             }
         }
