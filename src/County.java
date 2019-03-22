@@ -4,6 +4,8 @@ public class County {
     private Election2016 vote2016;
     private Education2016 educ2016;
     private Employment2016 employ2016;
+    private double unemploymentRate;
+    private double hsGradRate;
 
     public County(String name, int fips, Election2016 vote2016, Education2016 educ2016, Employment2016 employ2016) {
         this.name = name;
@@ -11,6 +13,29 @@ public class County {
         this.vote2016 = vote2016;
         this.educ2016 = educ2016;
         this.employ2016 = employ2016;
+    }
+
+    public County(String name, int fips, double unemploymentRate, double hsGradRate) {
+        this.name = name;
+        this.fips = fips;
+        this.unemploymentRate = unemploymentRate;
+        this.hsGradRate = hsGradRate;
+    }
+
+    public double getUnemploymentRate() {
+        return unemploymentRate;
+    }
+
+    public void setUnemploymentRate(double unemploymentRate) {
+        this.unemploymentRate = unemploymentRate;
+    }
+
+    public double getHsGradRate() {
+        return hsGradRate;
+    }
+
+    public void setHsGradRate(double hsGradRate) {
+        this.hsGradRate = hsGradRate;
     }
 
     public String getName() {
