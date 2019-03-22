@@ -31,7 +31,13 @@ public class Utils {
         String[] electionLines = data.split("\n");
         String[] educationLines = data2.split("\n");
         String[] employmentLines = data3.split("\n");
-        states = getStates(electionLines);
+
+        String e01 = normalizeLineBreaks(readFileAsString("data/eo1.csv"));
+        String e02 = normalizeLineBreaks(readFileAsString("data/eo2.csv"));
+        String e03 = normalizeLineBreaks(readFileAsString("data/eo3.csv"));
+
+
+        states = getStates(electionLines, e01, e02, e03);
         String[] electionLineData;
         for (int a = 1; a < electionLines.length; a++) {
             electionLineData = electionLines[a].split(",");
@@ -101,6 +107,7 @@ public class Utils {
         return -1;
     }
 
+    /*
     public static DataManager parseFilesIntoDataManager(String electionFile, String educationFile, String employmentFile) {
 
         ArrayList<State> states = new ArrayList<>();
@@ -111,6 +118,8 @@ public class Utils {
         String[] electionLines = data.split("\n");
         String[] educationLines = data2.split("\n");
         String[] employmentLines = data3.split("\n");
+
+
         states = getStates(electionLines);
         String[] electionLineData;
         for (int a = 1; a < electionLines.length; a++) {
@@ -180,6 +189,7 @@ public class Utils {
         }
         return new Education2016(-1, -1, -1, -1);
     }
+    */
 
     private static String optimizeLine(String line) {
         int index = 0;
@@ -232,9 +242,10 @@ public class Utils {
 
     }
 
-    private static ArrayList<State> getStates(String[] lines) {
+    private static ArrayList<State> getStates(String[] lines, String e01, String e02, String e03) {
         ArrayList<State> states = new ArrayList<>();
         String[] lineData;
+
         for (int a = 1; a < lines.length; a++) {
             lineData = lines[a].split(",");
             String state = getState(lineData);
@@ -246,17 +257,19 @@ public class Utils {
 
             }
             if (!stateExists) {
-                State s = new State(state, new ArrayList<County>(), getNonprofits(state));
+                State s = new State(state, new ArrayList<County>(), getNonprofits(state, e01, e02, e03));
                 states.add(s);
             }
         }
         return states;
     }
 
-    private static ArrayList<NonProfit> getNonprofits(String state) {
-        String data = normalizeLineBreaks("data/eo1.csv");
-        String data2 = normalizeLineBreaks("data/eo2.csv");
-        String data3 = normalizeLineBreaks("data/eo3.csv");
+    private static ArrayList<NonProfit> getNonprofits(String state, String e01, String e02, String e03) {
+
+
+        String data = e01;
+        String data2 = e02;
+        String data3 = e03;
 
         String[] data1Lines = data.split("\n");
         String[] data2Lines = data2.split("\n");
