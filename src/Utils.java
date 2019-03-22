@@ -21,6 +21,86 @@ public class Utils {
         return output.toString();
     }
 
+    public static DataManager parseFilesForCSV(String electionFile, String educationFile, String employmentFile) {
+
+        ArrayList<State> states = new ArrayList<>();
+        String data = normalizeLineBreaks(electionFile);
+        String data2 = normalizeLineBreaks(educationFile);
+        String data3 = normalizeLineBreaks(employmentFile);
+
+        String[] electionLines = data.split("\n");
+        String[] educationLines = data2.split("\n");
+        String[] employmentLines = data3.split("\n");
+        states = getStates(electionLines);
+        String[] electionLineData;
+        for (int a = 1; a < electionLines.length; a++) {
+            electionLineData = electionLines[a].split(",");
+
+            for (int i = 0; i < states.size(); i++) {
+                if (getState(electionLineData).equals(states.get(i).getName())) {
+
+                    ArrayList<County> counties = states.get(i).getCounties();
+                    String countyName = getCounty(electionLineData);
+                    int fips = getFip(electionLineData);
+                    boolean countyExists = false;
+                    for (County c : counties) {
+                        if (c.getName().equals(countyName) && c.getFips() == fips) {
+                            countyExists = true;
+                        }
+                    }
+                    if (!countyExists) {
+                        double hsGradRate = getHSGradRate(educationLines, fips);
+                        double unemploymentRate = getUnmploymentRate(employmentLines, fips);
+                        counties.add(new County(getCounty(electionLineData), getFip(electionLineData), unemploymentRate, hsGradRate));
+
+                    }
+                }
+
+            }
+        }
+        return new DataManager(states);
+
+    }
+
+    private static double getUnmploymentRate(String[] employmentLines, int fips) {
+        String[] lineData;
+        int countyLine = -1;
+        for (int i = 9; i < 3204; i++) {
+            lineData = employmentLines[i].split(",");
+            if (Integer.parseInt(lineData[0]) == fips) {
+                countyLine = i;
+            }
+        }
+        if (countyLine != -1) {
+            String line = employmentLines[countyLine];
+            line = optimizeLine(line);
+            String[] data = line.split(",");
+
+            return (Double.parseDouble(data[45].trim()) + Double.parseDouble(data[41].trim()) + Double.parseDouble(data[37].trim()) + Double.parseDouble(data[33].trim()) + Double.parseDouble(data[29].trim())) / 5;
+        }
+        return -1;
+    }
+
+    private static double getHSGradRate(String[] educationLines, int fips) {
+        String[] lineData;
+
+        int countyLine = -1;
+        for (int i = 6; i < 3209; i++) {
+            lineData = educationLines[i].split(",");
+            if (Integer.parseInt(lineData[0]) == fips) {
+                countyLine = i;
+            }
+        }
+        if (countyLine != -1) {
+            String line = educationLines[countyLine];
+            line = optimizeLine(line);
+            String[] data = line.split(",");
+
+            return 100 - Double.parseDouble(data[45].trim());
+        }
+        return -1;
+    }
+
     public static DataManager parseFilesIntoDataManager(String electionFile, String educationFile, String employmentFile) {
 
         ArrayList<State> states = new ArrayList<>();
@@ -166,12 +246,55 @@ public class Utils {
 
             }
             if (!stateExists) {
-                State s = new State(state, new ArrayList<County>());
+                State s = new State(state, new ArrayList<County>(), getNonprofits(state));
                 states.add(s);
             }
         }
         return states;
     }
+
+    private static ArrayList<NonProfit> getNonprofits(String state) {
+        String data = normalizeLineBreaks("data/eo1.csv");
+        String data2 = normalizeLineBreaks("data/eo2.csv");
+        String data3 = normalizeLineBreaks("data/eo3.csv");
+
+        String[] data1Lines = data.split("\n");
+        String[] data2Lines = data2.split("\n");
+        String[] data3Lines = data3.split("\n");
+
+        ArrayList<NonProfit> nonProfits = new ArrayList<>();
+
+        String line;
+        for (int i = 1; i < data1Lines.length; i++) {
+            line = data1Lines[i];
+            String[] lineData = line.split(",");
+            if ((lineData[5].trim()).equals(state)) {
+                NonProfit n = new NonProfit(lineData[1], lineData[5]);
+                nonProfits.add(n);
+            }
+
+        }
+        for (int i = 1; i < data2Lines.length; i++) {
+            line = data2Lines[i];
+            String[] lineData = line.split(",");
+            if ((lineData[5].trim()).equals(state)) {
+                NonProfit n = new NonProfit(lineData[1], lineData[5]);
+                nonProfits.add(n);
+            }
+
+        }
+        for (int i = 1; i < data3Lines.length; i++) {
+            line = data3Lines[i];
+            String[] lineData = line.split(",");
+            if ((lineData[5].trim()).equals(state)) {
+                NonProfit n = new NonProfit(lineData[1], lineData[5]);
+                nonProfits.add(n);
+            }
+
+        }
+        return nonProfits;
+    }
+
 
     private static String getState(String[] lineData) {
         int differenceInCommas = lineData.length - 11;
