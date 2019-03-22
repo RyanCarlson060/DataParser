@@ -13,12 +13,16 @@ public class State {
         this.nonProfits = nonProfits;
     }
 
+    public State(String name, ArrayList<County> counties) {
+        this.name = name;
+        this.counties = counties;
+    }
 
 
     public State(String name, ArrayList<County> counties, ArrayList<NonProfit> nonProfits) {
         this.name = name;
         this.counties = counties;
-        this.nonProfits=nonProfits;
+        this.nonProfits = nonProfits;
     }
 
     public String getName() {
