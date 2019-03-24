@@ -16,44 +16,55 @@ public class Main {
         String ElectionData = Utils.readFileAsString("data/2016_Presidential_Results.csv");
         String EducationData = Utils.readFileAsString("data/Education.csv");
         String EmploymentData = Utils.readFileAsString("data/Unemployment.csv");
-       // System.out.println(ElectionData);
+        // System.out.println(ElectionData);
         //ArrayList<ElectionResult> electionResults = Utils.parse2016PresidentialResults(ElectionData);
         //System.out.println(electionResults.get(0));
         DataManager d = Utils.parseFilesForCSV(ElectionData, EducationData, EmploymentData);
         System.out.println(d.getStates().get(0).getCounties().get(0).getUnemploymentRate());
 
         ArrayList<City> cities = Utils.getNonprofits();
-        System.out.println(cities);
 
-        saveDataToFile("Desktop/csv1", d);
-        saveDataToFile("Desktop/csv2", cities);
+        saveDataToFile("csv1", d);
+        saveDataToFile("Nonprofits", cities, d.getStates());
 
     }
 
     private static void saveDataToFile(String file, DataManager d) {
-        String data="";
+        String data = "";
         ArrayList<State> states = d.getStates();
-        for(State s : states){
+        for (State s : states) {
             ArrayList<County> counties = s.getCounties();
-            for (County c : counties){
-                data=data + s.getName() +", " + c.getName() +", " + c.getUnemploymentRate() + ", " + c.getHsGradRate() +"\n";
+            for (County c : counties) {
+                if (c.getUnemploymentRate() != -1) {
+                    data = data + s.getName() + ", " + c.getName() + ", " + c.getUnemploymentRate() + ", " + c.getHsGradRate() + "\n";
+                }
             }
         }
-        writeDataToFile(file,data);
+        writeDataToFile(file, data);
     }
-    private static void saveDataToFile(String file, ArrayList<City> cities) {
-        String data="";
-        for(City c : cities){
-            data = data + c.getState() +", " + c.getName() +", " + c.getNumNonprofits() +"\n";
+
+    private static void saveDataToFile(String file, ArrayList<City> cities, ArrayList<State> states) {
+        String data = "";
+        boolean stateExists = false;
+        for (City c : cities) {
+            for (int i = 0; i < states.size(); i++) {
+                if (states.get(i).getName().equals(c.getState())) {
+                    stateExists = true;
+                }
+
+            }
+            if (stateExists) {
+                data = data + c.getState() + ", " + c.getName() + ", " + c.getNumNonprofits() + "\n";
+            }
         }
-        writeDataToFile(file,data);
+        writeDataToFile(file, data);
     }
 
     private static void writeDataToFile(String file, String data) {
         File outfile = new File(file);
-        try(BufferedWriter writer = new BufferedWriter(new FileWriter(outfile))){
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outfile))) {
             writer.write(data);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
