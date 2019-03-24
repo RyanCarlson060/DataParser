@@ -1,3 +1,6 @@
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 
 /***
@@ -22,7 +25,36 @@ public class Main {
         ArrayList<City> cities = Utils.getNonprofits();
         System.out.println(cities);
 
+        saveDataToFile("Desktop/csv1", d);
+        saveDataToFile("Desktop/csv2", cities);
 
     }
 
+    private static void saveDataToFile(String file, DataManager d) {
+        String data="";
+        ArrayList<State> states = d.getStates();
+        for(State s : states){
+            ArrayList<County> counties = s.getCounties();
+            for (County c : counties){
+                data=data + s.getName() +", " + c.getName() +", " + c.getUnemploymentRate() + ", " + c.getHsGradRate() +"\n";
+            }
+        }
+        writeDataToFile(file,data);
+    }
+    private static void saveDataToFile(String file, ArrayList<City> cities) {
+        String data="";
+        for(City c : cities){
+            data = data + c.getState() +", " + c.getName() +", " + c.getNumNonprofits() +"\n";
+        }
+        writeDataToFile(file,data);
+    }
+
+    private static void writeDataToFile(String file, String data) {
+        File outfile = new File(file);
+        try(BufferedWriter writer = new BufferedWriter(new FileWriter(outfile))){
+            writer.write(data);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 }
