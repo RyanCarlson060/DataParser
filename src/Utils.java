@@ -32,12 +32,8 @@ public class Utils {
         String[] educationLines = data2.split("\n");
         String[] employmentLines = data3.split("\n");
 
-        String e01 = normalizeLineBreaks(readFileAsString("data/eo1.csv"));
-        String e02 = normalizeLineBreaks(readFileAsString("data/eo2.csv"));
-        String e03 = normalizeLineBreaks(readFileAsString("data/eo3.csv"));
 
-
-        states = getStates(electionLines, e01, e02, e03);
+        states = getStates(electionLines);
         String[] electionLineData;
         for (int a = 1; a < electionLines.length; a++) {
             electionLineData = electionLines[a].split(",");
@@ -107,7 +103,7 @@ public class Utils {
         return -1;
     }
 
-    /*
+
     public static DataManager parseFilesIntoDataManager(String electionFile, String educationFile, String employmentFile) {
 
         ArrayList<State> states = new ArrayList<>();
@@ -189,7 +185,7 @@ public class Utils {
         }
         return new Education2016(-1, -1, -1, -1);
     }
-    */
+
 
     private static String optimizeLine(String line) {
         int index = 0;
@@ -242,7 +238,7 @@ public class Utils {
 
     }
 
-    private static ArrayList<State> getStates(String[] lines, String e01, String e02, String e03) {
+    private static ArrayList<State> getStates(String[] lines) {
         ArrayList<State> states = new ArrayList<>();
         String[] lineData;
 
@@ -257,15 +253,18 @@ public class Utils {
 
             }
             if (!stateExists) {
-                State s = new State(state, new ArrayList<County>(), getNonprofits(state, e01, e02, e03));
+                State s = new State(state, new ArrayList<County>());
                 states.add(s);
             }
         }
         return states;
     }
 
-    private static ArrayList<NonProfit> getNonprofits(String state, String e01, String e02, String e03) {
+    public static ArrayList<City> getNonprofits() {
 
+        String e01 = normalizeLineBreaks(readFileAsString("data/eo1.csv"));
+        String e02 = normalizeLineBreaks(readFileAsString("data/eo2.csv"));
+        String e03 = normalizeLineBreaks(readFileAsString("data/eo3.csv"));
 
         String data = e01;
         String data2 = e02;
@@ -275,37 +274,70 @@ public class Utils {
         String[] data2Lines = data2.split("\n");
         String[] data3Lines = data3.split("\n");
 
-        ArrayList<NonProfit> nonProfits = new ArrayList<>();
-
         String line;
+
+
+        ArrayList<City> cities = new ArrayList<>();
         for (int i = 1; i < data1Lines.length; i++) {
+            System.out.println(i);
             line = data1Lines[i];
             String[] lineData = line.split(",");
-            if ((lineData[5].trim()).equals(state)) {
-                NonProfit n = new NonProfit(lineData[1], lineData[5]);
-                nonProfits.add(n);
+
+            if (cityExists(cities, lineData)) {
+                City c = getCity(cities, lineData);
+                c.incrementNonprofits();
+            } else {
+                cities.add(new City(lineData[4], lineData[5]));
             }
 
+
         }
+
         for (int i = 1; i < data2Lines.length; i++) {
+            System.out.println(i);
             line = data2Lines[i];
             String[] lineData = line.split(",");
-            if ((lineData[5].trim()).equals(state)) {
-                NonProfit n = new NonProfit(lineData[1], lineData[5]);
-                nonProfits.add(n);
+
+            if (cityExists(cities, lineData)) {
+                City c = getCity(cities, lineData);
+                c.incrementNonprofits();
+            } else {
+                cities.add(new City(lineData[4], lineData[5]));
             }
 
         }
         for (int i = 1; i < data3Lines.length; i++) {
+            System.out.println(i);
             line = data3Lines[i];
             String[] lineData = line.split(",");
-            if ((lineData[5].trim()).equals(state)) {
-                NonProfit n = new NonProfit(lineData[1], lineData[5]);
-                nonProfits.add(n);
+
+            if (cityExists(cities, lineData)) {
+                City c = getCity(cities, lineData);
+                c.incrementNonprofits();
+            } else {
+                cities.add(new City(lineData[4], lineData[5]));
             }
 
         }
-        return nonProfits;
+        return cities;
+    }
+
+    private static City getCity(ArrayList<City> cities, String[] lineData) {
+        for (City c : cities) {
+            if (c.getName().equals(lineData[4]) && c.getState().equals(lineData[5])) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    private static boolean cityExists(ArrayList<City> cities, String[] lineData) {
+        for (City c : cities) {
+            if (c.getName().equals(lineData[4]) && c.getState().equals(lineData[5])) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
