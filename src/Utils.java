@@ -192,7 +192,6 @@ public class Utils {
         while (index < line.length() && index >= 0) {
             line = replaceCommas(line, index);
             index++;
-
         }
         line = line.replace("\"", "");
         line = line.trim();
@@ -209,7 +208,6 @@ public class Utils {
                 String fixedString = originalString.substring(0);
                 fixedString = fixedString.replace(",", "");
                 s = s.replace(originalString, fixedString);
-
             }
         }
         return s;
@@ -222,7 +220,6 @@ public class Utils {
         double totalVotes = Double.parseDouble(electionLineData[2]);
 
         return new Election2016(demVotes, gopVotes, totalVotes);
-
     }
 
     private static String getCounty(String[] lineData) {
@@ -234,24 +231,18 @@ public class Utils {
         int differenceInCommas = lineData.length - 11;
         int combined_fips = Integer.parseInt(lineData[10 + differenceInCommas].trim());
         return combined_fips;
-
-
     }
 
     private static ArrayList<State> getStates(String[] lines) {
         ArrayList<State> states = new ArrayList<>();
         String[] lineData;
-
         for (int a = 1; a < lines.length; a++) {
             lineData = lines[a].split(",");
             String state = getState(lineData);
             boolean stateExists = false;
-            for (int i = 0; i < states.size(); i++) {
-                if (states.get(i).getName().equals(state)) {
+            for (State s: states)
+                if (s.getName().equals(state))
                     stateExists = true;
-                }
-
-            }
             if (!stateExists) {
                 State s = new State(state, new ArrayList<County>());
                 states.add(s);
@@ -261,64 +252,13 @@ public class Utils {
     }
 
     public static ArrayList<City> getNonprofits() {
-
-        String e01 = normalizeLineBreaks(readFileAsString("data/eo1.csv"));
-        String e02 = normalizeLineBreaks(readFileAsString("data/eo2.csv"));
-        String e03 = normalizeLineBreaks(readFileAsString("data/eo3.csv"));
-
-        String data = e01;
-        String data2 = e02;
-        String data3 = e03;
-
-        String[] data1Lines = data.split("\n");
-        String[] data2Lines = data2.split("\n");
-        String[] data3Lines = data3.split("\n");
-
-        String line;
-
-
+        String[] data1Lines = getLinesFromFileName("data/eo1.csv");
+        String[] data2Lines = getLinesFromFileName("data/eo2.csv");
+        String[] data3Lines = getLinesFromFileName("data/eo3.csv");
         ArrayList<City> cities = new ArrayList<>();
-        for (int i = 1; i < data1Lines.length; i++) {
-            System.out.println(i);
-            line = data1Lines[i];
-            String[] lineData = line.split(",");
-
-            if (cityExists(cities, lineData)) {
-                City c = getCity(cities, lineData);
-                c.incrementNonprofits();
-            } else {
-                cities.add(new City(lineData[4], lineData[5]));
-            }
-
-
-        }
-
-        for (int i = 1; i < data2Lines.length; i++) {
-            System.out.println(i);
-            line = data2Lines[i];
-            String[] lineData = line.split(",");
-
-            if (cityExists(cities, lineData)) {
-                City c = getCity(cities, lineData);
-                c.incrementNonprofits();
-            } else {
-                cities.add(new City(lineData[4], lineData[5]));
-            }
-
-        }
-        for (int i = 1; i < data3Lines.length; i++) {
-            System.out.println(i);
-            line = data3Lines[i];
-            String[] lineData = line.split(",");
-
-            if (cityExists(cities, lineData)) {
-                City c = getCity(cities, lineData);
-                c.incrementNonprofits();
-            } else {
-                cities.add(new City(lineData[4], lineData[5]));
-            }
-
-        }
+        addCities(cities, data1Lines);
+        addCities(cities, data2Lines);
+        addCities(cities, data3Lines);
         return cities;
     }
 
@@ -344,7 +284,6 @@ public class Utils {
     private static String getState(String[] lineData) {
         int differenceInCommas = lineData.length - 11;
         return lineData[8 + differenceInCommas];
-
     }
 
 
@@ -363,7 +302,6 @@ public class Utils {
         }
 
         return dataSet;
-
     }
 
     private static ElectionResult parseElectionLines(String[] lineData) {
@@ -399,5 +337,24 @@ public class Utils {
         return s.replace("\r\n", "\n").replace('\r', '\n');
     }
 
+    private static String[] getLinesFromFileName(String fileName) {
+        return normalizeLineBreaks(readFileAsString(fileName)).split("\n");
+    }
 
+    private static void addCities(ArrayList<City> cities, String[] dataLines) {
+        String line;
+        for (int i = 1; i < dataLines.length; i++) {
+            System.out.println(i);
+            line = dataLines[i];
+            String[] lineData = line.split(",");
+
+            if (cityExists(cities, lineData)) {
+                City c = getCity(cities, lineData);
+                c.incrementNonprofits();
+            } else {
+                cities.add(new City(lineData[4], lineData[5]));
+            }
+        }
+    }
 }
+
